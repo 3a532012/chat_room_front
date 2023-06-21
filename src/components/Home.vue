@@ -1,23 +1,49 @@
-<script setup lang="ts">
-</script>
-
 <template>
   <div>
-    <div></div>
+    <h1>Chat Room</h1>
+    <input
+      v-model="inputValue"
+      type="text"
+      id="messageInput"
+      placeholder="Enter message"
+    />
+    <button @click="sendMessage">Send</button>
+    <div id="chatMessages"></div>
   </div>
 </template>
 
-<script setup>
-import { io } from "socket.io-client";
-const socket = io("127.0.0.1:3000", {
-  path: '/chat_room'
-});
-// client-side
-socket.on("connect", () => {
-  console.log(socket.id); // x8WIv7-mJelg7on_ALbx
-});
+<script setup lang="ts">
+import { ref } from "vue";
+const socket = new WebSocket("ws://localhost:8080/ws");
 
-socket.on("disconnect", () => {
-  console.log(socket.id); // undefined
-});
+const registerMessage = () => {
+  socket.onmessage = function (event) {
+    var message = event.data;
+    console.log("Received message:", message);
+    displayMessage(message);
+    // Add your logic to display the message in the chat interface
+  };
+};
+const displayMessage = (message: string) => {
+  var chatMessages = document.getElementById("chatMessages");
+  var newMessage = document.createElement("p");
+  newMessage.textContent = message;
+  chatMessages!.appendChild(newMessage);
+};
+const inputValue = ref<string>("");
+const sendMessage = () => {
+  socket.send(inputValue.value);
+  inputValue.value = "";
+};
+
+const initConnect = () => {
+  socket.onopen = () => {
+    // The WebSocket connection is open, you can send/receive messages here
+
+    // Request the history from the server
+    socket.send("get-history");
+  };
+};
+registerMessage();
+initConnect();
 </script>

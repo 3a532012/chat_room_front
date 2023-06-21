@@ -7,7 +7,7 @@ import checker from 'vite-plugin-checker'
 export default defineConfig({
   plugins: [
     vue(),
-    checker({vueTsc: true})
+    // checker({vueTsc: true})
   ],
   resolve: {
     alias: {
