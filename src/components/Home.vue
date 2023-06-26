@@ -20,7 +20,7 @@ const registerMessage = () => {
   socket.onmessage = function (event) {
     var message = event.data;
     console.log("Received message:", message);
-    displayMessage(message);
+    displayMessage(JSON.parse(message).Content);
     // Add your logic to display the message in the chat interface
   };
 };
@@ -36,14 +36,5 @@ const sendMessage = () => {
   inputValue.value = "";
 };
 
-const initConnect = () => {
-  socket.onopen = () => {
-    // The WebSocket connection is open, you can send/receive messages here
-
-    // Request the history from the server
-    socket.send("get-history");
-  };
-};
 registerMessage();
-initConnect();
 </script>
