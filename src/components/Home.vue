@@ -13,8 +13,27 @@
 </template>
 
 <script setup lang="ts">
+import axios from "axios";
 import { ref } from "vue";
-const socket = new WebSocket("ws://localhost:8080/ws");
+const service = axios.create({
+  headers: { "Content-Type": "application/json" },
+  timeout: 30000,
+});
+
+service
+  .request({
+    method: "POST",
+    url: `/_data/api/users`,
+    data: { username: "chris", password: "123123" },
+  })
+  .then(function (response) {
+    console.log(response);
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
+
+const socket = new WebSocket("ws://localhost:8080/ws?id=123123123");
 
 const registerMessage = () => {
   socket.onmessage = function (event) {

@@ -13,5 +13,13 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src'),
     }
-  }
+  },
+  server: {
+    proxy: {
+        '/_data': {
+            target: 'http://localhost:8005',
+            changeOrigin: true
+        },
+    },
+},
 })
