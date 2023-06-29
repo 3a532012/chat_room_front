@@ -13,30 +13,17 @@
 </template>
 
 <script setup lang="ts">
-import axios from "axios";
 import { ref } from "vue";
-const service = axios.create({
-  headers: { "Content-Type": "application/json" },
-  timeout: 30000,
-});
+import { getLocalStorage } from "@/utils/localStorage";
 
-service
-  .request({
-    method: "POST",
-    url: `/_data/api/users`,
-    data: { username: "chris", password: "123123" },
-  })
-  .then(function (response) {
-    console.log(response);
-  })
-  .catch(function (error) {
-    console.log(error);
-  });
-
-const socket = new WebSocket("ws://localhost:8080/ws?id=123123123");
+const socket = ref<WebSocket | null>(null);
+const initSocket = () => {
+  let token = getLocalStorage("token");
+  socket.value = new WebSocket(`ws://localhost:8005/socket/ws?token=${token}`);
+};
 
 const registerMessage = () => {
-  socket.onmessage = function (event) {
+  socket.value!.onmessage = function (event) {
     var message = event.data;
     console.log("Received message:", message);
     displayMessage(JSON.parse(message).Content);
@@ -51,9 +38,14 @@ const displayMessage = (message: string) => {
 };
 const inputValue = ref<string>("");
 const sendMessage = () => {
-  socket.send(inputValue.value);
+  socket.value!.send(inputValue.value);
   inputValue.value = "";
 };
 
-registerMessage();
+const init = () => {
+  initSocket();
+  registerMessage();
+};
+
+init();
 </script>

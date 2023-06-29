@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["@vue/runtime-core", "node", "vite/client"],
+    "types": ["@vue/runtime-core", "node", "element-plus/global", "vite/client"],
     "target": "ESNext",
     "useDefineForClassFields": true,
     "allowSyntheticDefaultImports": true,
