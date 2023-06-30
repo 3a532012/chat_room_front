@@ -19,7 +19,9 @@ import { getLocalStorage } from "@/utils/localStorage";
 const socket = ref<WebSocket | null>(null);
 const initSocket = () => {
   let token = getLocalStorage("token");
-  socket.value = new WebSocket(`ws://localhost:8005/socket/ws?token=${token}`);
+  socket.value = new WebSocket(
+    `ws://localhost:8005/socket/ws/room?token=${token}`,
+  );
 };
 
 const registerMessage = () => {
