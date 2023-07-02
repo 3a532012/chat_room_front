@@ -48,7 +48,7 @@ const register = () => {
     .then((resp) => {
       if (resp.data.code == 0) {
         saveLocalStorage("token", resp.data.data?.token);
-        router.push({ name: "OnlineList" });
+        router.push({ name: "Login" });
       }
       loadingInstance.close();
     })

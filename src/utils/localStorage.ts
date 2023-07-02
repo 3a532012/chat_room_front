@@ -9,5 +9,5 @@ export const updateLocalStorage = (key: string, value:any) => {
     window.localStorage.setItem(key, value)
 }
 export const getLocalStorage = (key: string) => {
-    window.localStorage.getItem(key)
+    return window.localStorage.getItem(key)
 }

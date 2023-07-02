@@ -1,9 +1,24 @@
 import { createRouter, createWebHashHistory, RouterOptions, Router, RouteRecordRaw } from 'vue-router'
+import Register from "@/components/register.vue"
+import Login from "@/components/login.vue"
+import AfterLogin from "@/pages/afterLogin.vue"
+import Room from "@/components/room.vue"
+import OnlineList from "@/components/onlineList.vue"
 
 const routes: RouteRecordRaw[] = [
-    { path: '/', name: 'Home', component: () => import('@/components/home.vue') },
-    { path: '/register', name: 'Register', component: () => import('@/components/register.vue') },
-    { path: '/online-list', name: 'OnlineList', component: () => import('@/components/onlineList.vue') }
+    { path: '/register', name: 'Register', component: Register },
+    { path: '/login', name: 'Login', component: Login },
+    {
+        path: '/',
+        name: 'AfterLogin',
+        component: AfterLogin,
+        children:
+        [
+            { path: 'room', name: 'Room', component: Room },
+            { path: 'online-list', name: 'OnlineList', component: OnlineList }
+        ]
+    }
+    
    ]
    
    // RouterOptions是路由选项类型

@@ -28,4 +28,23 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { inject } from "vue";
+import { listSocketKey } from "@/utils/provide"
+
+
+const listSocket = inject(listSocketKey)
+const registerList = () => {
+  listSocket!.value!.onmessage = function (event) {
+    var message = event.data;
+    console.log("Received List:", message);
+    // Add your logic to display the message in the chat interface
+  };
+};
+
+const init = () => {
+  registerList();
+};
+
+init();
+</script>

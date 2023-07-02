@@ -13,19 +13,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { getLocalStorage } from "@/utils/localStorage";
+import { inject,ref } from "vue";
+import { roomSocketKey } from "@/utils/provide"
 
-const socket = ref<WebSocket | null>(null);
-const initSocket = () => {
-  let token = getLocalStorage("token");
-  socket.value = new WebSocket(
-    `ws://localhost:8005/socket/ws/room?token=${token}`,
-  );
-};
+const roomSocket = inject(roomSocketKey)
 
 const registerMessage = () => {
-  socket.value!.onmessage = function (event) {
+  roomSocket!.value!.onmessage = function (event) {
     var message = event.data;
     console.log("Received message:", message);
     displayMessage(JSON.parse(message).Content);
@@ -40,12 +34,11 @@ const displayMessage = (message: string) => {
 };
 const inputValue = ref<string>("");
 const sendMessage = () => {
-  socket.value!.send(inputValue.value);
+  roomSocket!.value!.send(inputValue.value);
   inputValue.value = "";
 };
 
 const init = () => {
-  initSocket();
   registerMessage();
 };
 
