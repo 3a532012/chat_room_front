@@ -30,16 +30,33 @@
 
 <script setup lang="ts">
 import { inject } from "vue";
-import { listSocketKey } from "@/utils/provide"
-
-
-const listSocket = inject(listSocketKey)
+import { listSocketKey } from "@/utils/provide";
+type EventType = "list" | "delete" | "create" | "update";
+type EventData = {
+  EventType: EventType;
+  Data: any;
+};
+const listSocket = inject(listSocketKey);
 const registerList = () => {
   listSocket!.value!.onmessage = function (event) {
-    var message = event.data;
-    console.log("Received List:", message);
-    // Add your logic to display the message in the chat interface
+    dispatchEvent(event.data);
   };
+};
+
+const dispatchEvent = (data: EventData) => {
+  switch (data.EventType) {
+    case "list":
+      break;
+    case "create":
+      break;
+
+    case "update":
+      break;
+    case "delete":
+      break;
+    default:
+      break;
+  }
 };
 
 const init = () => {

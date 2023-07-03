@@ -17,7 +17,8 @@ const routes: RouteRecordRaw[] = [
             { path: 'room', name: 'Room', component: Room },
             { path: 'online-list', name: 'OnlineList', component: OnlineList }
         ]
-    }
+    },
+    { path: '/:pathMatch(.*)*',name: 'NotFound', component: Register },
     
    ]
    

@@ -7,8 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
-    Chatroom: typeof import('./src/components/chatroom.vue')['default']
-    Home: typeof import('./src/components/Home.vue')['default']
+    Home: typeof import('./src/components/home.vue')['default']
     Login: typeof import('./src/components/login.vue')['default']
     OnlineList: typeof import('./src/components/onlineList.vue')['default']
     Register: typeof import('./src/components/register.vue')['default']
