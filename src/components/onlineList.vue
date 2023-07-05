@@ -9,7 +9,7 @@
           ? 'bg-green-600 hover:bg-green-300'
           : 'bg-zinc-600 hover:bg-zinc-300'
       "
-      class="cursor-pointer text-white rounded-lg flex justify-center items-center w-[200px] h-[50px]"
+      class="cursor-pointer text-white rounded-lg flex justify-center items-center w-20 h-10"
     >
       {{ item.user.userName }}
     </div>
