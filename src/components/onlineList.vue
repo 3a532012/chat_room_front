@@ -37,7 +37,7 @@ const listSocket = ref<WebSocket | null>(null);
 const initListSocket = () => {
   let { token } = JSON.parse(getLocalStorage("userInfo"));
   listSocket.value = new WebSocket(
-    `ws://localhost:8005/socket/ws/list?token=${token}`,
+    `ws://192.168.50.16:8005/socket/ws/list?token=${token}`,
   );
 };
 const router = useRouter();

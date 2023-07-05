@@ -50,7 +50,7 @@ const closeSocket = () => {
 const { token, id, userName } = toRefs(JSON.parse(getLocalStorage("userInfo")));
 const initSocket = () => {
   roomSocket.value = new WebSocket(
-    `ws://localhost:8005/socket/ws/room?token=${token.value}&id=${route.query.id}`,
+    `ws://192.168.50.16:8005/socket/ws/room?token=${token.value}&id=${route.query.id}`,
   );
   onUnmounted(() => {
     closeSocket();
