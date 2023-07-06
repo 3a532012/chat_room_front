@@ -1,23 +1,31 @@
 <template>
-  <h1>Register</h1>
-  <div class="mt-10">
-    <div class="flex">
-      <div>Account：</div>
-      <input placeholder="please enter account" v-model.trim="account" />
-    </div>
-    <div class="flex mt-3">
-      <div>Password：</div>
-      <input
-        placeholder="please enter password"
-        type="password"
-        v-model="password"
-      />
-    </div>
-    <div
-      @click="register"
-      class="mt-4 cursor-pointer rounded-md bg-slate-600 text-white hover:bg-slate-400"
-    >
-      Confirm
+  <div class="flex flex-col justify-center items-center">
+    <h1>Register</h1>
+    <div class="mt-10">
+      <div class="flex">
+        <div>Account：</div>
+        <input placeholder="please enter account" v-model.trim="account" />
+      </div>
+      <div class="flex mt-3">
+        <div>Password：</div>
+        <input
+          placeholder="please enter password"
+          type="password"
+          v-model="password"
+        />
+      </div>
+      <div
+        @click="register"
+        class="mt-4 text-center cursor-pointer rounded-md bg-slate-600 text-white hover:bg-slate-400"
+      >
+        Confirm
+      </div>
+      <div
+        @click="to('Login')"
+        class="mt-4 text-center cursor-pointer rounded-md bg-blue-600 text-white hover:bg-blue-400"
+      >
+        Login
+      </div>
     </div>
   </div>
 </template>
@@ -26,8 +34,10 @@
 import { ref, reactive } from "vue";
 import { ElLoading } from "element-plus";
 import { registerRequest } from "@/api/request";
-import { saveLocalStorage } from "@/utils/localStorage";
 import { useRouter } from "vue-router";
+const to = (name: string) => {
+  router.push({ name: name });
+};
 const account = ref<string | null>(null);
 const password = ref<string | null>(null);
 const router = useRouter();
@@ -47,7 +57,6 @@ const register = () => {
   registerRequest(config)
     .then((resp) => {
       if (resp.data.code == 0) {
-        saveLocalStorage("token", resp.data.data?.token);
         router.push({ name: "Login" });
       }
       loadingInstance.close();

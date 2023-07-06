@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { ElMessage } from 'element-plus';
+import { AxiosResponse } from 'axios'
 
 const TIMEOUT:number = 30000;
 const ROOT:string = '/_data/api'
@@ -51,16 +52,21 @@ service.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+interface CustomAPIResponse<T>  {
+    code: number
+    message: string
+    data: T
+}
 
-export const loginRequest = (data: object = {}) => {
-    return service.request({
+export const loginRequest = <responseData = any, requestConfig = any>(data?: requestConfig) => {
+    return service.request<CustomAPIResponse<responseData>, AxiosResponse<CustomAPIResponse<responseData>>,requestConfig>({
         url: `${ROOT}/login`,
         method: "POST",
         data: data
     })
 }
-export const registerRequest = (data: object = {}) => {
-    return service.request({
+export const registerRequest = <responseData = any, requestConfig = any>(data?: requestConfig) => {
+    return service.request<responseData, AxiosResponse<responseData>,requestConfig>({
         url: `${ROOT}/register`,
         method: "POST",
         data: data

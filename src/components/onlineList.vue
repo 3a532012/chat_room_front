@@ -1,7 +1,7 @@
 <template>
-  <div class="grid grid-cols-4 gap-9">
+  <div class="grid grid-cols-4 gap-1">
     <div
-      @click="toRoom(item.user.id)"
+      @click="toRoom(item)"
       v-for="item in onlineList"
       :key="item.user.id"
       :class="
@@ -9,7 +9,7 @@
           ? 'bg-green-600 hover:bg-green-300'
           : 'bg-zinc-600 hover:bg-zinc-300'
       "
-      class="cursor-pointer text-white rounded-lg flex justify-center items-center w-20 h-10"
+      class="cursor-pointer text-white rounded-lg flex justify-center items-center h-10"
     >
       {{ item.user.userName }}
     </div>
@@ -17,10 +17,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onUnmounted } from "vue";
-import { getLocalStorage } from "@/utils/localStorage";
+import { ref, onUnmounted, toRefs } from "vue";
+import { useStore } from "@/store";
 import { reactive } from "vue";
 import { useRouter } from "vue-router";
+
+const store = useStore();
 type EventType = "list" | "delete" | "create" | "update" | "logout";
 type OnlineUserData = {
   isOnline: boolean;
@@ -33,20 +35,21 @@ type EventData = {
   eventType: EventType;
   data: OnlineUserData[];
 };
+const { userInfo } = toRefs(store.state);
 const listSocket = ref<WebSocket | null>(null);
 const initListSocket = () => {
-  let { token } = JSON.parse(getLocalStorage("userInfo"));
   listSocket.value = new WebSocket(
-    `ws://192.168.50.16:8005/socket/ws/list?token=${token}`,
+    `ws://192.168.101.169:8005/socket/ws/list?token=${userInfo.value?.token}`,
   );
 };
 const router = useRouter();
 const onlineList: OnlineUserData[] = reactive([]);
-const toRoom = (id: string) => {
+const toRoom = (data: OnlineUserData) => {
   router.push({
     name: "Room",
     query: {
-      id: id,
+      id: data.user.id,
+      name: data.user.userName,
     },
   });
 };
