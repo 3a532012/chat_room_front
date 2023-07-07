@@ -5,30 +5,59 @@
       ref="contentRef"
       class="relative h-[90vh] overflow-auto border-[1px] border-slate-200 pr-2"
     >
-      <div
-        v-for="item in message"
-        :class="item.sender === userInfo?.id ? 'justify-end' : 'justify-start'"
-        class="flex w-full"
-      >
-        <div
-          v-if="item.sender === userInfo?.id"
-          class="mb-4 flex items-end text-sm mr-1"
-        >
-          {{ getTimeString(item.timestamp) }}
+      <div v-for="(item, index) in message">
+        <div class="flex justify-center">
+          <div
+            class="box-border p-1 rounded-lg bg-[rgba(79,79,79,0.2)]"
+            v-if="isShowDay(item.timestamp as string, message[index - 1]?.timestamp as string)"
+          >
+            {{
+              isShowYear(
+                item.timestamp as string,
+                message[index - 1]?.timestamp as string,
+              )
+                ? `${formatTimestampToYYYYMMDD(item.timestamp as string)}`
+                : `${formatTimestampToMMDD(item.timestamp as string)}`
+            }}
+          </div>
         </div>
+
         <div
           :class="
-            item.sender === userInfo?.id ? 'bg-green-300' : 'bg-slate-300'
+            item.sender === userInfo?.id ? 'justify-end' : 'justify-start'
           "
-          class="max-w-[80%] break-all box-border p-2 rounded-lg mb-4 text-black"
+          class="flex w-full"
         >
-          {{ item.content }}
-        </div>
-        <div
-          v-if="item.sender !== userInfo?.id"
-          class="mb-4 flex items-end text-sm ml-1"
-        >
-          {{ getTimeString(item.timestamp) }}
+          <div
+            v-if="item.sender === userInfo?.id"
+            class="mb-4 flex flex-col justify-end text-sm mr-1"
+          >
+            <div class="flex justify-end" v-if="item.sender === userInfo?.id">
+              {{ item.isRead ? "Read" : "" }}
+            </div>
+            <div>
+              {{ getTimeString(item.timestamp as string) }}
+            </div>
+          </div>
+          <div
+            :class="
+              item.sender === userInfo?.id ? 'bg-green-300' : 'bg-slate-300'
+            "
+            class="max-w-[80%] break-all box-border p-2 rounded-lg mb-4 text-black"
+          >
+            {{ item.content }}
+          </div>
+          <div
+            v-if="item.sender !== userInfo?.id"
+            class="mb-4 flex flex-col justify-end text-sm ml-1"
+          >
+            <div class="flex justify-start" v-if="item.sender === userInfo?.id">
+              {{ item.isRead ? "Read" : "" }}
+            </div>
+            <div>
+              {{ getTimeString(item.timestamp as string) }}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -67,20 +96,22 @@ import {
   nextTick,
   computed,
 } from "vue";
+import { formatTimestampToYYYYMMDD, formatTimestampToMMDD } from "@/utils/time";
 import { useRoute } from "vue-router";
 import { useStore } from "@/store";
 import { onMounted } from "vue";
 const store = useStore();
 const { userInfo } = toRefs(store.state);
-type EventType = "history" | "write";
+type EventType = "history" | "write" | "update";
 type Message = {
-  id: string;
+  id?: string;
   sender: string;
   receiver: string;
   content: string;
-  timestamp: string;
+  timestamp?: string;
+  isRead?: boolean;
 };
-type EventData = {
+type RoomEvent = {
   eventType: EventType;
   data: Message[];
 };
@@ -103,15 +134,63 @@ const initSocket = () => {
     closeSocket();
   });
 };
+const newWiteMessage = (
+  sender: string,
+  receiver: string,
+  content: string,
+): Message => {
+  return {
+    sender: sender,
+    receiver: receiver,
+    content: content,
+  };
+};
+
 const inputValue = ref<string>("");
 const toBottom = () => {
   window.scrollTo(0, document.body.scrollHeight);
 };
+
 const sendMessage = () => {
   if (inputValue.value) {
-    roomSocket!.value!.send(inputValue.value);
+    let message = newWiteMessage(
+      userInfo.value?.id as string,
+      route.query.id as string,
+      inputValue.value,
+    );
+    let roomEvent: RoomEvent = {
+      eventType: "write",
+      data: [message],
+    };
+    roomSocket!.value!.send(JSON.stringify(roomEvent));
     inputValue.value = "";
   }
+};
+const isShowDay = (
+  firstTimestamp: string,
+  secondTimestamp: string,
+): boolean => {
+  if (!secondTimestamp) {
+    return true;
+  }
+  const date1 = new Date(firstTimestamp).setUTCHours(0, 0, 0, 0);
+  const date2 = new Date(secondTimestamp).setUTCHours(0, 0, 0, 0);
+
+  const diffInDays = Math.abs(date1 - date2) / (1000 * 60 * 60 * 24);
+  return diffInDays >= 1;
+};
+const isShowYear = (
+  firstTimestamp: string,
+  secondTimestamp: string,
+): boolean => {
+  if (!secondTimestamp) {
+    return true;
+  }
+  const year1 = new Date(firstTimestamp).getUTCFullYear();
+  const year2 = new Date(secondTimestamp).getUTCFullYear();
+
+  const diffInYears = Math.abs(year1 - year2);
+  return diffInYears >= 1;
 };
 const maxRows = 4; // Maximum number of rows
 const minRows = 1; // Minimum number of rows
@@ -145,7 +224,7 @@ const registerMessage = () => {
     dispatchEvent(JSON.parse(message));
   };
 };
-const dispatchEvent = (data: EventData) => {
+const dispatchEvent = (data: RoomEvent) => {
   switch (data.eventType) {
     case "history":
       initMessage(data.data);
@@ -153,12 +232,26 @@ const dispatchEvent = (data: EventData) => {
     case "write":
       writeMessage(data.data);
       break;
+    case "update":
+      updateMessage(data.data);
+      break;
 
     default:
       break;
   }
 };
 const initMessage = (data: Message[]) => {
+  let unReadData = data.filter((item) => {
+    return item.receiver === userInfo.value?.id && !item.isRead;
+  });
+  unReadData.forEach((item, index, array) => {
+    array[index].isRead = true;
+  });
+  let roomEvent: RoomEvent = {
+    eventType: "update",
+    data: unReadData,
+  };
+  roomSocket.value?.send(JSON.stringify(roomEvent));
   Object.assign(message, data);
   contentScrollToBottom();
 };
@@ -178,6 +271,16 @@ const writeMessage = (data: Message[]) => {
       }
     }
   }
+};
+const updateMessage = (data: Message[]) => {
+  data.forEach((item) => {
+    message.some((innerItem, index, array) => {
+      if (item.id === innerItem.id) {
+        array[index] = item;
+        return true;
+      }
+    });
+  });
 };
 onMounted(() => {
   registerScrollToBottomEvent();
