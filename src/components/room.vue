@@ -1,14 +1,16 @@
 <template>
   <div class="relative">
-    <h1 class="flex justify-center">Chat Room</h1>
+    <h1 class="flex justify-center">GooBo</h1>
     <div
+    tabindex="0"
+    @focus="focus"
       ref="contentRef"
       class="relative h-[90vh] overflow-auto border-[1px] border-slate-200 pr-2"
     >
       <div v-for="(item, index) in message">
         <div class="flex justify-center">
           <div
-            class="box-border p-1 rounded-lg bg-[rgba(79,79,79,0.2)]"
+            class="box-border p-1 rounded-lg bg-[rgba(79,79,79,0.2)] my-2"
             v-if="isShowDay(item.timestamp as string, message[index - 1]?.timestamp as string)"
           >
             {{
@@ -64,6 +66,7 @@
     <div class="mt-2 flex w-full relative">
       <div
         v-show="isShowHintMessage"
+        @click="contentScrollToBottom"
         class="bg-[rgba(201,199,201,0.5)] truncate w-full absolute top-[-1.5rem]"
       >
         {{ `${route.query.name}: ${lastReceiverMessage?.content}` }}
@@ -128,7 +131,7 @@ const lastReceiverMessage = computed(() => {
 });
 const initSocket = () => {
   roomSocket.value = new WebSocket(
-    `ws://192.168.101.169:8005/socket/ws/room?token=${userInfo.value?.token}&id=${route.query.id}`,
+    `ws://192.168.50.16:8005/socket/ws/room?token=${userInfo.value?.token}&id=${route.query.id}`,
   );
   onUnmounted(() => {
     closeSocket();
@@ -149,8 +152,11 @@ const newWiteMessage = (
 const inputValue = ref<string>("");
 const toBottom = () => {
   window.scrollTo(0, document.body.scrollHeight);
+  focus()
 };
-
+const registerKeydown = () => {
+  document.addEventListener('keydown',sendMessage)
+}
 const sendMessage = () => {
   if (inputValue.value) {
     let message = newWiteMessage(
@@ -241,6 +247,11 @@ const dispatchEvent = (data: RoomEvent) => {
   }
 };
 const initMessage = (data: Message[]) => {
+  sentMessageToRead(data)
+  Object.assign(message, data);
+  contentScrollToBottom();
+};
+const sentMessageToRead = (data: Message[]) => {
   let unReadData = data.filter((item) => {
     return item.receiver === userInfo.value?.id && !item.isRead;
   });
@@ -252,13 +263,23 @@ const initMessage = (data: Message[]) => {
     data: unReadData,
   };
   roomSocket.value?.send(JSON.stringify(roomEvent));
-  Object.assign(message, data);
-  contentScrollToBottom();
-};
+}
+const focus = () => {
+  sentMessageToRead(message)
+}
 const writeMessage = (data: Message[]) => {
   data.forEach((item) => {
     message.push(item);
   });
+  detectShowHint()
+  detectIsRead(data)
+};
+const detectIsRead = (data: Message[]) => {
+  if(document.activeElement === contentRef.value || document.activeElement === textRef.value) {
+    sentMessageToRead(data)
+  }
+}
+const detectShowHint = () => {
   if (contentRef.value) {
     const isScrolledToBottom =
       contentRef.value.scrollTop >=
@@ -271,7 +292,7 @@ const writeMessage = (data: Message[]) => {
       }
     }
   }
-};
+}
 const updateMessage = (data: Message[]) => {
   data.forEach((item) => {
     message.some((innerItem, index, array) => {
@@ -313,6 +334,7 @@ const contentScrollToBottom = () => {
 const init = () => {
   initSocket();
   registerMessage();
+  registerKeydown()
 };
 
 init();

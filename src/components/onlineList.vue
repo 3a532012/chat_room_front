@@ -1,4 +1,5 @@
 <template>
+  <div class="flex justify-center text-4xl mb-4">Online List</div>
   <div class="grid grid-cols-4 gap-1">
     <div
       @click="toRoom(item)"
@@ -39,7 +40,7 @@ const { userInfo } = toRefs(store.state);
 const listSocket = ref<WebSocket | null>(null);
 const initListSocket = () => {
   listSocket.value = new WebSocket(
-    `ws://192.168.101.169:8005/socket/ws/list?token=${userInfo.value?.token}`,
+    `ws://192.168.50.16:8005/socket/ws/list?token=${userInfo.value?.token}`,
   );
 };
 const router = useRouter();
@@ -94,6 +95,14 @@ const initOnlineList = (data: OnlineUserData[]) => {
   Object.assign(onlineList, data);
 };
 const updateUser = (data: OnlineUserData[]) => {
+  data.forEach((item) => {
+    onlineList.some((innerItem, index, array) => {
+      if (item.user.id === innerItem.user.id) {
+        array[index] = item;
+        return true;
+      }
+    });
+  });
   Object.assign(onlineList, data);
 };
 const createUser = (data: OnlineUserData[]) => {
