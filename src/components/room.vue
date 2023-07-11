@@ -100,10 +100,11 @@ import {
   computed,
 } from "vue";
 import { formatTimestampToYYYYMMDD, formatTimestampToMMDD } from "@/utils/time";
-import { useRoute } from "vue-router";
+import { useRoute,useRouter } from "vue-router";
 import { useStore } from "@/store";
 import { onMounted } from "vue";
 const store = useStore();
+const router = useRouter()
 const { userInfo } = toRefs(store.state);
 type EventType = "history" | "write" | "update";
 type Message = {
@@ -133,6 +134,7 @@ const initSocket = () => {
   roomSocket.value = new WebSocket(
     `ws://192.168.50.16:8005/socket/ws/room?token=${userInfo.value?.token}&id=${route.query.id}`,
   );
+  roomSocket.value.onclose = closeSocket
   onUnmounted(() => {
     closeSocket();
   });
