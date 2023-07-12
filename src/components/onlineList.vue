@@ -7,11 +7,17 @@
       :key="item.user.id"
       :class="
         item.isOnline
-          ? 'bg-green-600 hover:bg-green-300'
+          ? 'bg-blue-600 hover:bg-blue-300'
           : 'bg-zinc-600 hover:bg-zinc-300'
       "
-      class="cursor-pointer text-white rounded-lg flex justify-center items-center h-10"
+      class="box-border break-all p-4 relative cursor-pointer text-white rounded-lg flex justify-center items-center min-h-10"
     >
+      <div
+        v-show="item.user.unReadCount !== 0"
+        class="text-center w-8 absolute left-[-0.5rem] top-[-0.5rem] bg-green-600 rounded-xl text-white"
+      >
+        {{ item.user.unReadCount > 99 ? "99+" : item.user.unReadCount }}
+      </div>
       {{ item.user.userName }}
     </div>
   </div>
@@ -30,6 +36,7 @@ type OnlineUserData = {
   user: {
     id: string;
     userName: string;
+    unReadCount: number;
   };
 };
 type EventData = {
@@ -40,7 +47,7 @@ const { userInfo } = toRefs(store.state);
 const listSocket = ref<WebSocket | null>(null);
 const initListSocket = () => {
   listSocket.value = new WebSocket(
-    `ws://192.168.50.16:8005/socket/ws/list?token=${userInfo.value?.token}`,
+    `ws://192.168.101.169:8005/socket/ws/list?token=${userInfo.value?.token}`,
   );
 };
 const router = useRouter();
@@ -66,7 +73,7 @@ const registerList = () => {
   });
 };
 
-const dispatchEvent = (data: EventData) => {
+const dispatchEvent = (data: any) => {
   switch (data.eventType) {
     case "list":
       initOnlineList(data.data);
@@ -81,11 +88,32 @@ const dispatchEvent = (data: EventData) => {
     case "delete":
       deleteUser(data.data);
       break;
+    case "updateUnReadCount":
+      updateUnReadCount(data.data);
+      break;
     case "logout":
       toLogin();
     default:
       break;
   }
+};
+type UpdateUnReadCountEvent = {
+  eventType: string;
+  data: UpdateUnReadCountEventData[];
+};
+type UpdateUnReadCountEventData = {
+  id: string;
+  unReadCount: number;
+};
+const updateUnReadCount = (data: UpdateUnReadCountEventData[]) => {
+  data.forEach((item) => {
+    onlineList.some((subItem, subIndex, subArray) => {
+      if (subItem.user.id === item.id) {
+        subArray[subIndex].user.unReadCount = item.unReadCount;
+        return true;
+      }
+    });
+  });
 };
 const toLogin = () => {
   closeSocket();

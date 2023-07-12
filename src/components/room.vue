@@ -2,8 +2,8 @@
   <div class="relative">
     <h1 class="flex justify-center">GooBo</h1>
     <div
-    tabindex="0"
-    @focus="focus"
+      tabindex="0"
+      @focus="focus"
       ref="contentRef"
       class="relative h-[90vh] overflow-auto border-[1px] border-slate-200 pr-2"
     >
@@ -100,11 +100,11 @@ import {
   computed,
 } from "vue";
 import { formatTimestampToYYYYMMDD, formatTimestampToMMDD } from "@/utils/time";
-import { useRoute,useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useStore } from "@/store";
 import { onMounted } from "vue";
 const store = useStore();
-const router = useRouter()
+const router = useRouter();
 const { userInfo } = toRefs(store.state);
 type EventType = "history" | "write" | "update";
 type Message = {
@@ -132,9 +132,9 @@ const lastReceiverMessage = computed(() => {
 });
 const initSocket = () => {
   roomSocket.value = new WebSocket(
-    `ws://192.168.50.16:8005/socket/ws/room?token=${userInfo.value?.token}&id=${route.query.id}`,
+    `ws://192.168.101.169:8005/socket/ws/room?token=${userInfo.value?.token}&id=${route.query.id}`,
   );
-  roomSocket.value.onclose = closeSocket
+  roomSocket.value.onclose = closeSocket;
   onUnmounted(() => {
     closeSocket();
   });
@@ -154,11 +154,16 @@ const newWiteMessage = (
 const inputValue = ref<string>("");
 const toBottom = () => {
   window.scrollTo(0, document.body.scrollHeight);
-  focus()
+  focus();
 };
 const registerKeydown = () => {
-  document.addEventListener('keydown',sendMessage)
-}
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      console.log(event);
+      sendMessage();
+    }
+  });
+};
 const sendMessage = () => {
   if (inputValue.value) {
     let message = newWiteMessage(
@@ -249,7 +254,7 @@ const dispatchEvent = (data: RoomEvent) => {
   }
 };
 const initMessage = (data: Message[]) => {
-  sentMessageToRead(data)
+  sentMessageToRead(data);
   Object.assign(message, data);
   contentScrollToBottom();
 };
@@ -265,22 +270,25 @@ const sentMessageToRead = (data: Message[]) => {
     data: unReadData,
   };
   roomSocket.value?.send(JSON.stringify(roomEvent));
-}
+};
 const focus = () => {
-  sentMessageToRead(message)
-}
+  sentMessageToRead(message);
+};
 const writeMessage = (data: Message[]) => {
   data.forEach((item) => {
     message.push(item);
   });
-  detectShowHint()
-  detectIsRead(data)
+  detectShowHint();
+  detectIsRead(data);
 };
 const detectIsRead = (data: Message[]) => {
-  if(document.activeElement === contentRef.value || document.activeElement === textRef.value) {
-    sentMessageToRead(data)
+  if (
+    document.activeElement === contentRef.value ||
+    document.activeElement === textRef.value
+  ) {
+    sentMessageToRead(data);
   }
-}
+};
 const detectShowHint = () => {
   if (contentRef.value) {
     const isScrolledToBottom =
@@ -294,7 +302,7 @@ const detectShowHint = () => {
       }
     }
   }
-}
+};
 const updateMessage = (data: Message[]) => {
   data.forEach((item) => {
     message.some((innerItem, index, array) => {
@@ -336,7 +344,7 @@ const contentScrollToBottom = () => {
 const init = () => {
   initSocket();
   registerMessage();
-  registerKeydown()
+  registerKeydown();
 };
 
 init();
